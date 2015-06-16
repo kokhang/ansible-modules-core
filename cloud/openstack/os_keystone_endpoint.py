@@ -28,8 +28,8 @@ except ImportError:
 DOCUMENTATION = '''
 ---
 module: os_keystone_endpoint
-version_added: "1.9"
-short_description: Manage OpenStack Identity (Keystone v2) endpoints
+version_added: "2.0"
+short_description: Manage OpenStack Identity endpoints
 extends_documentation_fragment: openstack
 description:
    - Manage endpoints from OpenStack.
@@ -100,8 +100,7 @@ EXAMPLES = '''
 
 
 def main():
-    argument_spec = openstack_argument_spec()
-    argument_spec.update(dict(
+    argument_spec = openstack_full_argument_spec(
         service_name=dict(),
         service_id=dict(),
         region=dict(required=False, default=None),
@@ -109,7 +108,7 @@ def main():
         internal_url=dict(required=False, default=None),
         admin_url=dict(required=False, default=None),
         state=dict(default='present', choices=['present', 'absent']),
-    ))
+    )
     module = AnsibleModule(
         argument_spec=argument_spec,
         mutually_exclusive=[['service_name', 'service_id']],
