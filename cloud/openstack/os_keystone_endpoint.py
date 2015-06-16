@@ -40,12 +40,14 @@ options:
             OpenStack service name (e.g. keystone). Mutually exclusive with
             service_id. One of service_name or service_id is required.
      required: false
+     default: None
    service_id:
      description:
         - |
             OpenStack service id. Mutually exclusive with service_name. One of
             service_name or service_id is required.
      required: false
+     default: None
    region:
      description:
         - OpenStack region to which endpoint will be added
@@ -101,8 +103,8 @@ EXAMPLES = '''
 
 def main():
     argument_spec = openstack_full_argument_spec(
-        service_name=dict(),
-        service_id=dict(),
+        service_name=dict(required=False, default=None),
+        service_id=dict(required=False, default=None),
         region=dict(required=False, default=None),
         public_url=dict(required=True),
         internal_url=dict(required=False, default=None),
@@ -112,7 +114,7 @@ def main():
     module = AnsibleModule(
         argument_spec=argument_spec,
         mutually_exclusive=[['service_name', 'service_id']],
-        required_one_of=['service_name', 'service_id']
+        required_one_of=[['service_name', 'service_id']]
     )
 
     if not HAS_SHADE:
