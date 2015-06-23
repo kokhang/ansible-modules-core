@@ -28,24 +28,16 @@ except ImportError:
 DOCUMENTATION = '''
 ---
 module: os_keystone_endpoint
-version_added: "1.9"
-short_description: Manage OpenStack Identity (Keystone v2) endpoints
+version_added: "2.0"
+short_description: Manage OpenStack Identity endpoints
 extends_documentation_fragment: openstack
 description:
    - Manage endpoints from OpenStack.
 options:
-   service_name:
+   service:
      description:
-        - |
-            OpenStack service name (e.g. keystone). Mutually exclusive with
-            service_id. One of service_name or service_id is required.
-     required: false
-   service_id:
-     description:
-        - |
-            OpenStack service id. Mutually exclusive with service_name. One of
-            service_name or service_id is required.
-     required: false
+        - OpenStack service name or id (e.g. compute).
+     required: true
    region:
      description:
         - OpenStack region to which endpoint will be added
@@ -78,18 +70,17 @@ EXAMPLES = '''
 # Create a Glance endpoint in region aw1
 - name: Create Glance endpoints
   os_keystone_endpoint: >
-    service_name="glance"
+    service="image"
     region="aw1"
     public_url="https://glance.aw1.bigcompany.com/"
     internal_url="http://glance-aw1.internal:9292/"
     admin_url="https://glance.aw1.bigcompany.com/"
     state=present
     cloud: dguerri
-
 # Delete a Keystone endpoint in region aw2
 - name: Delete Glance endpoints
   os_keystone_endpoint: >
-    service_name="glance"
+    service="image"
     region="aw2"
     public_url="https://glance.aw1.bigcompany.com/"
     internal_url="http://glance-aw1.internal:9292/"
@@ -100,20 +91,18 @@ EXAMPLES = '''
 
 
 def main():
-    argument_spec = openstack_argument_spec()
-    argument_spec.update(dict(
-        service_name=dict(),
-        service_id=dict(),
+    argument_spec = openstack_full_argument_spec(
+        service=dict(required=True),
         region=dict(required=False, default=None),
         public_url=dict(required=True),
         internal_url=dict(required=False, default=None),
         admin_url=dict(required=False, default=None),
         state=dict(default='present', choices=['present', 'absent']),
-    ))
+    )
     module = AnsibleModule(
         argument_spec=argument_spec,
         mutually_exclusive=[['service_name', 'service_id']],
-        required_one_of=['service_name', 'service_id']
+        required_one_of=[['service_name', 'service_id']]
     )
 
     if not HAS_SHADE:
@@ -131,19 +120,20 @@ def main():
 
     try:
         cloud = shade.operator_cloud(**module.params)
+        service = cloud.get_service(name_or_id=service)
+        if not service:
+            module.fail_json(msg="Could not find service %s" % service)
 
-        # Determine service id
-        if service_id is None:
-            service = cloud.get_service(service_name_or_id=service_name)
-            service_id = service.id
 
+        # TODO this needs to be replaced with new v2/v3 aware shade code
         endpoint_kwargs = dict(
-            service_name_or_id=service_id,
+            service_id=service.id,
             public_url=public_url,
             internal_url=internal_url,
             admin_url=admin_url,
             region=region)
 
+        # TODO this needs to be replaced with new v2/v3 aware shade code
         endpoints = cloud.search_endpoints(filters=endpoint_kwargs)
         if endpoints:
             endpoint = endpoints[0]
@@ -155,24 +145,22 @@ def main():
                 if module.check_mode:
                     module.exit_json(changed=True)
 
+                del endpoint_kwargs['service_id']
+                endpoint_kwargs['service_name_or_id'] = service_id
                 new_endpoint = cloud.create_endpoint(**endpoint_kwargs)
-                module.exit_json(changed=True,
-                                 result='created',
-                                 id=new_endpoint['id'])
+                module.exit_json(changed=True, endpoint=new_endpoint)
             else:
                 # Endpoint is already there
-                module.exit_json(changed=False,
-                                 result='success',
-                                 id=endpoint['id'])
+                module.exit_json(changed=False, endpoint=endpoint)
         elif state == "absent":
             if module.check_mode:
                 module.exit_json(changed=endpoint is not None)
 
             if endpoint is not None:
                 cloud.delete_endpoint(id=endpoint['id'])
-                module.exit_json(changed=True, result='deleted')
+                module.exit_json(changed=True)
             else:
-                module.exit_json(changed=False, result='success')
+                module.exit_json(changed=False)
 
     except shade.OpenStackCloudException as e:
         if check_mode:
