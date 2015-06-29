@@ -93,6 +93,8 @@ def main():
         name=dict(required=True),
         description=dict(default=None),
         state=dict(default='present', choices=['absent', 'present']),
+        verify=dict(default=True, type='bool'),
+        cacert=dict(default=None),
     )
 
     module_kwargs = openstack_module_kwargs()
