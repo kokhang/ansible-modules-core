@@ -99,6 +99,8 @@ def main():
         internal_url=dict(required=False, default=None),
         admin_url=dict(required=False, default=None),
         state=dict(default='present', choices=['present', 'absent']),
+        verify=dict(default=True, type='bool'),
+        cacert=dict(default=None),
     )
     module = AnsibleModule(
         argument_spec=argument_spec,
