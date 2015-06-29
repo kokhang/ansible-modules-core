@@ -79,6 +79,8 @@ def main():
         public_key      = dict(default=None),
         public_key_file = dict(default=None),
         state           = dict(default='present', choices=['absent', 'present']),
+        verify          = dict(default=True, type='bool'),
+        cacert          = dict(default=None),
     )
     module_kwargs = openstack_module_kwargs(
         mutually_exclusive=[['public_key', 'public_key_file']])
