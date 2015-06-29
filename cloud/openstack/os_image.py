@@ -132,6 +132,8 @@ def main():
         kernel            = dict(default=None),
         properties        = dict(default={}),
         state             = dict(default='present', choices=['absent', 'present']),
+        verify            = dict(default=True, type='bool'),
+        cacert            = dict(default=None),
     )
     module_kwargs = openstack_module_kwargs()
     module = AnsibleModule(argument_spec, **module_kwargs)

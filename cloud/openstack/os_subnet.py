@@ -174,6 +174,8 @@ def main():
         allocation_pool_end=dict(default=None),
         host_routes=dict(default=None, type='list'),
         state=dict(default='present', choices=['absent', 'present']),
+        verify=dict(default=True, type='bool'),
+        cacert=dict(default=None),
     )
 
     module_kwargs = openstack_module_kwargs()

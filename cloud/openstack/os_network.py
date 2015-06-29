@@ -67,6 +67,8 @@ def main():
         shared=dict(default=False, type='bool'),
         admin_state_up=dict(default=True, type='bool'),
         state=dict(default='present', choices=['absent', 'present']),
+        verify=dict(default=True, type='bool'),
+        cacert=dict(default=None),
     )
 
     module_kwargs = openstack_module_kwargs()

@@ -395,6 +395,8 @@ def main():
         root_volume                     = dict(default=None),
         terminate_volume                = dict(default=False, type='bool'),
         state                           = dict(default='present', choices=['absent', 'present']),
+	verify                          = dict(default=True, type='bool'),
+	cacert                          = dict(default=None),
     )
     module_kwargs = openstack_module_kwargs(
         mutually_exclusive=[
