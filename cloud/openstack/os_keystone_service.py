@@ -86,6 +86,8 @@ def main():
         service_type=dict(required=True),
         description=dict(required=False, default="Not provided"),
         state=dict(default='present', choices=['present', 'absent']),
+        verify=dict(default=True, type='bool'),
+        cacert=dict(default=None),
     )
 
     module_kwargs = openstack_module_kwargs()
